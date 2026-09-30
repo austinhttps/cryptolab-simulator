@@ -105,8 +105,8 @@ flowchart TD
 
 ### 1. Installation
 ```bash
-git clone https://github.com/your-username/cryptolab.git
-cd cryptolab
+git clone https://github.com/austinhttps/cryptolab-simulator.git
+cd cryptolab-simulator
 npm install
 ```
 
