@@ -1,0 +1,43 @@
+{
+  "sha256": [
+    {
+      "input": "",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "description": "Empty string SHA-256 RFC 6234 vector"
+    },
+    {
+      "input": "abc",
+      "expected": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+      "description": "RFC 6234 standard test vector 'abc'"
+    },
+    {
+      "input": "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+      "expected": "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1",
+      "description": "RFC 6234 multi-block SHA-256 vector"
+    }
+  ],
+  "md5": [
+    {
+      "input": "",
+      "expected": "d41d8cd98f00b204e9800998ecf8427e",
+      "description": "RFC 1321 empty string MD5"
+    },
+    {
+      "input": "a",
+      "expected": "0cc175b9c0f1b6a831c399e269772661",
+      "description": "RFC 1321 single char 'a'"
+    },
+    {
+      "input": "message digest",
+      "expected": "f96b697d7cb7938d525a2f31aaf161d0",
+      "description": "RFC 1321 'message digest'"
+    }
+  ],
+  "sha512": [
+    {
+      "input": "abc",
+      "expected": "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f",
+      "description": "RFC 6234 SHA-512 'abc'"
+    }
+  ]
+}

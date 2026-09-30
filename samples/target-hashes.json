@@ -1,0 +1,62 @@
+[
+  {
+    "id": "sample-md5-easy",
+    "title": "Easy MD5 (Common Password)",
+    "plaintext": "password",
+    "algorithm": "MD5",
+    "hash": "5f4dcc3b5aa765d61d8327deb882cf99",
+    "difficulty": "Instant (Top 10)",
+    "description": "Classic high-frequency unsalted MD5 digest found in almost all wordlists.",
+    "salted": false
+  },
+  {
+    "id": "sample-md5-medium",
+    "title": "Medium MD5 (Dictionary + Number)",
+    "plaintext": "shadow2024",
+    "algorithm": "MD5",
+    "hash": "9172e874bc246f620170aaeb82bdcba5",
+    "difficulty": "Fast (1k-5k words / Hybrid)",
+    "description": "Compound word with year suffix, cracked via hybrid dictionary attack.",
+    "salted": false
+  },
+  {
+    "id": "sample-sha256-easy",
+    "title": "Easy SHA-256 (System Admin)",
+    "plaintext": "admin123",
+    "algorithm": "SHA-256",
+    "hash": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+    "difficulty": "Instant (Top 50)",
+    "description": "Unsalted SHA-256 hash representing a common default corporate credential.",
+    "salted": false
+  },
+  {
+    "id": "sample-sha256-medium",
+    "title": "Medium SHA-256 (Cyber Theme)",
+    "plaintext": "cryptolab_42",
+    "algorithm": "SHA-256",
+    "hash": "ee2f8a3398f402afb76a05fbf04568ada636e38fd9b5d30c6d96cbc7073c448d",
+    "difficulty": "Medium (10k wordlist)",
+    "description": "Simulated custom application password in the extended 10k corpus.",
+    "salted": false
+  },
+  {
+    "id": "sample-sha256-hard",
+    "title": "Hard / Uncrackable (High-Entropy Salted)",
+    "plaintext": "Unknown [Random 128-bit key]",
+    "algorithm": "SHA-256",
+    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "difficulty": "Exhaustion (Simulated Uncrackable)",
+    "description": "Demonstrates search space exhaustion when targeted digest is not in the dictionary.",
+    "salted": true
+  },
+  {
+    "id": "sample-md5-leetspeak",
+    "title": "Leetspeak MD5 (p@ssw0rd!)",
+    "plaintext": "p@ssw0rd!",
+    "algorithm": "MD5",
+    "hash": "d5ec75d5fe70d428685510fae36492d9",
+    "difficulty": "Rule / Mask Based",
+    "description": "Shows effectiveness of rule-based mutations against naive character substitutions.",
+    "salted": false
+  }
+]

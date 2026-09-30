@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CryptoLab - Interactive Cryptography & Hash Cracking Simulator</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              bg: '#090d16',
+              surface: '#0f172a',
+              surface2: '#1e293b',
+              cyan: '#06b6d4',
+              emerald: '#10b981',
+              purple: '#a855f7',
+              red: '#ef4444'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="bg-cyber-bg text-slate-100 min-h-screen cyber-grid-bg antialiased selection:bg-cyan-500 selection:text-black">
+
+  <!-- TOP APP BAR -->
+  <header class="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 px-4 lg:px-8 py-3.5">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-emerald-400 p-[1px] shadow-lg shadow-cyan-500/20">
+          <div class="w-full h-full bg-slate-950 rounded-xl flex items-center justify-center font-mono font-bold text-lg text-cyan-400">
+            0x
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-black tracking-tight text-white flex items-center gap-2">
+              CryptoLab <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-950 border border-cyan-800 text-cyan-400 font-mono">v1.0</span>
+            </h1>
+          </div>
+          <p class="text-xs text-slate-400 font-medium">Interactive Browser Cryptography & Web Worker Cracking Simulator</p>
+        </div>
+      </div>
+
+      <!-- STATUS BADGE & HEADER METRICS -->
+      <div class="flex items-center gap-3">
+        <div id="webcrypto-status-badge" class="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono bg-emerald-950/80 text-emerald-400 border border-emerald-700/60 shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          Web Crypto API Active
+        </div>
+        <a href="#test-suite" onclick="document.querySelector('[data-target=\'section-test-suite\']').click()" class="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono bg-slate-900 border border-slate-700 hover:border-cyan-400 text-slate-300 transition">
+          <span>⚡ Live Tests</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN NAVIGATION TABS -->
+  <nav class="max-w-7xl mx-auto px-4 lg:px-8 pt-4 pb-2">
+    <div class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-800">
+      <button class="nav-tab-btn px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition border border-cyan-500 bg-cyan-950/80 text-cyan-400 flex items-center gap-2 shrink-0" data-target="section-hash-inspector">
+        <span>🔍 Hash Inspector & Salt</span>
+      </button>
+      <button class="nav-tab-btn px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition border border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900 flex items-center gap-2 shrink-0" data-target="section-encryption-playground">
+        <span>🔐 Symmetric & Asymmetric</span>
+      </button>
+      <button class="nav-tab-btn px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition border border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900 flex items-center gap-2 shrink-0" data-target="section-cracking-simulator">
+        <span>⚡ Hash Cracking (Web Worker)</span>
+      </button>
+      <button class="nav-tab-btn px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition border border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900 flex items-center gap-2 shrink-0" data-target="section-slow-hash-benchmark">
+        <span>🛡️ Slow Hashes & KDFs</span>
+      </button>
+      <button class="nav-tab-btn px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition border border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900 flex items-center gap-2 shrink-0" data-target="section-test-suite">
+        <span>🧪 Test Suite & Assertions</span>
+      </button>
+      <button class="nav-tab-btn px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition border border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900 flex items-center gap-2 shrink-0" data-target="section-reference-guide">
+        <span>📖 Crypto Cheat Sheet</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- CONTENT WRAPPER -->
+  <main class="max-w-7xl mx-auto px-4 lg:px-8 py-6 space-y-8">
+
+    <!-- ========================================================================= -->
+    <!-- MODULE A: HASH INSPECTOR & SALT VISUALIZER -->
+    <!-- ========================================================================= -->
+    <section id="section-hash-inspector" class="content-section space-y-6">
+      <!-- Section Header -->
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+            Hash Inspector & Salt Visualizer
+          </h2>
+          <p class="text-sm text-slate-400">Live multi-algorithm digest computation, CSPRNG cryptographic salting, and rainbow table collision analysis.</p>
+        </div>
+        <button id="toggle-salt-btn" class="px-4 py-2 rounded-xl text-xs font-bold font-mono transition bg-slate-800 text-emerald-400 border border-slate-700 hover:border-emerald-500 shadow-sm">
+          + Enable Salt
+        </button>
+      </div>
+
+      <!-- Live Input & Controls Card -->
+      <div class="cyber-card p-6 rounded-2xl space-y-4">
+        <div>
+          <label class="block text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider mb-2">
+            Plaintext Input (Live Stream)
+          </label>
+          <div class="relative">
+            <input type="text" id="hash-plaintext-input" value="admin" placeholder="Type any text or password..."
+              class="w-full bg-slate-950 border border-slate-700 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl px-4 py-3 font-mono text-sm text-white placeholder-slate-600 outline-none transition">
+          </div>
+        </div>
+
+        <!-- Sample Quick Clicks -->
+        <div class="flex flex-wrap items-center gap-2 pt-1">
+          <span class="text-xs text-slate-500 font-mono">Sample Inputs:</span>
+          <button class="hash-sample-btn px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300 hover:text-cyan-300 hover:border-cyan-700 transition" data-text="password">"password"</button>
+          <button class="hash-sample-btn px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300 hover:text-cyan-300 hover:border-cyan-700 transition" data-text="admin123">"admin123"</button>
+          <button class="hash-sample-btn px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300 hover:text-cyan-300 hover:border-cyan-700 transition" data-text="letmein">"letmein"</button>
+          <button class="hash-sample-btn px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300 hover:text-cyan-300 hover:border-cyan-700 transition" data-text="CorrectHorseBatteryStaple!">"CorrectHorse..."</button>
+        </div>
+
+        <!-- Salt Configuration Panel (Collapsible) -->
+        <div id="salt-controls-panel" class="hidden p-4 rounded-xl bg-slate-950 border border-purple-800/50 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse"></span>
+              <span class="text-xs font-bold text-purple-300 uppercase tracking-wider font-mono">CSPRNG Salt (16-Bytes / 128-bit Entropy)</span>
+            </div>
+            <button id="regen-salt-btn" class="px-2.5 py-1 rounded bg-purple-950 text-purple-300 hover:bg-purple-900 border border-purple-700 text-xs font-mono transition">
+              🔄 Regenerate Random Salt
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="md:col-span-2">
+              <label class="block text-[11px] font-mono text-slate-400 mb-1">Salt (Hex Encoded Bytes):</label>
+              <input type="text" id="salt-hex-input" class="w-full bg-slate-900 border border-purple-800/80 rounded-lg px-3 py-2 font-mono text-xs text-purple-300 outline-none select-all">
+            </div>
+            <div>
+              <label class="block text-[11px] font-mono text-slate-400 mb-1">Salting Strategy:</label>
+              <select id="salt-position-select" class="w-full bg-slate-900 border border-purple-800/80 rounded-lg px-3 py-2 font-mono text-xs text-slate-200 outline-none">
+                <option value="prefix">Prefix (Salt + Plaintext)</option>
+                <option value="suffix">Suffix (Plaintext + Salt)</option>
+                <option value="wrap">Wrap (Salt + Plaintext + Salt)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Byte Stream Visualizer Preview -->
+        <div id="salt-visualizer-stream"></div>
+      </div>
+
+      <!-- Multi-Algorithm Output Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- MD5 Card -->
+        <div class="cyber-card p-5 rounded-2xl space-y-2 border-l-4 border-l-red-500">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-sm text-red-400 font-mono">MD5</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800">RFC 1321 (Broken)</span>
+            </div>
+            <button class="copy-hash-btn text-xs text-slate-400 hover:text-white transition font-mono" data-target="md5-digest">Copy</button>
+          </div>
+          <div id="md5-digest" class="font-mono text-xs text-slate-200 bg-slate-950 p-3 rounded-lg border border-slate-800 break-all select-all">...</div>
+          <div class="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-1">
+            <span id="md5-length">128 bits (32 hex chars)</span>
+            <span id="md5-time">0.00 ms</span>
+          </div>
+        </div>
+
+        <!-- SHA-1 Card -->
+        <div class="cyber-card p-5 rounded-2xl space-y-2 border-l-4 border-l-amber-500">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-sm text-amber-400 font-mono">SHA-1</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">RFC 3174 (Deprecated)</span>
+            </div>
+            <button class="copy-hash-btn text-xs text-slate-400 hover:text-white transition font-mono" data-target="sha1-digest">Copy</button>
+          </div>
+          <div id="sha1-digest" class="font-mono text-xs text-slate-200 bg-slate-950 p-3 rounded-lg border border-slate-800 break-all select-all">...</div>
+          <div class="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-1">
+            <span id="sha1-length">160 bits (40 hex chars)</span>
+            <span id="sha1-time">0.00 ms</span>
+          </div>
+        </div>
+
+        <!-- SHA-256 Card -->
+        <div class="cyber-card p-5 rounded-2xl space-y-2 border-l-4 border-l-cyan-500">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-sm text-cyan-400 font-mono">SHA-256</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">FIPS 180-4 / RFC 6234</span>
+            </div>
+            <button class="copy-hash-btn text-xs text-slate-400 hover:text-white transition font-mono" data-target="sha256-digest">Copy</button>
+          </div>
+          <div id="sha256-digest" class="font-mono text-xs text-slate-200 bg-slate-950 p-3 rounded-lg border border-slate-800 break-all select-all">...</div>
+          <div class="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-1">
+            <span id="sha256-length">256 bits (64 hex chars)</span>
+            <span id="sha256-time">0.00 ms</span>
+          </div>
+        </div>
+
+        <!-- SHA-512 Card -->
+        <div class="cyber-card p-5 rounded-2xl space-y-2 border-l-4 border-l-emerald-500">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-sm text-emerald-400 font-mono">SHA-512</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">FIPS 180-4 Standard</span>
+            </div>
+            <button class="copy-hash-btn text-xs text-slate-400 hover:text-white transition font-mono" data-target="sha512-digest">Copy</button>
+          </div>
+          <div id="sha512-digest" class="font-mono text-xs text-slate-200 bg-slate-950 p-3 rounded-lg border border-slate-800 break-all select-all text-[11px]">...</div>
+          <div class="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-1">
+            <span id="sha512-length">512 bits (128 hex chars)</span>
+            <span id="sha512-time">0.00 ms</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RAINBOW TABLE COLLISION DEMO -->
+      <div class="cyber-card p-6 rounded-2xl space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>🌈 Rainbow Table Vulnerability Demonstration</span>
+            </h3>
+            <p class="text-xs text-slate-400">Precomputed hash lookup engine indexed with 5,000 top dictionary passwords.</p>
+          </div>
+          <span class="text-xs px-2.5 py-1 rounded bg-slate-900 border border-slate-700 text-slate-300 font-mono">O(1) Memory Space-Time Tradeoff</span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input type="text" id="rainbow-query-input" placeholder="Paste any MD5/SHA-256 hash or test the current computed digest..."
+            class="flex-1 bg-slate-950 border border-slate-700 focus:border-cyan-400 rounded-xl px-4 py-2.5 font-mono text-xs text-white placeholder-slate-600 outline-none">
+          <button id="rainbow-lookup-btn" class="px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-black font-bold text-xs uppercase font-mono tracking-wider transition">
+            Query Rainbow Table
+          </button>
+        </div>
+
+        <div id="rainbow-result-box" class="pt-1">
+          <div class="p-4 bg-slate-900/50 border border-slate-800 rounded-xl text-xs text-slate-400 font-mono">
+            Click "Query Rainbow Table" to check if the current digest collides with precomputed lookup maps.
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ========================================================================= -->
+    <!-- MODULE B: SYMMETRIC VS ASYMMETRIC ENCRYPTION PLAYGROUND -->
+    <!-- ========================================================================= -->
+    <section id="section-encryption-playground" class="content-section hidden space-y-8">
+      <div>
+        <h2 class="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          Symmetric vs. Asymmetric Encryption Playground
+        </h2>
+        <p class="text-sm text-slate-400">Explore authenticated symmetric encryption with bit-level tampering detection, and 2048-bit RSA asymmetric keypair cryptography.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- SUBMODULE 1: AES-256-GCM -->
+        <div class="cyber-card p-6 rounded-2xl space-y-5 border-t-4 border-t-cyan-500">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <h3 class="text-lg font-bold text-cyan-400 font-mono">AES-256-GCM (AEAD)</h3>
+              <p class="text-xs text-slate-400">Authenticated Encryption with Associated Data</p>
+            </div>
+            <button id="aes-gen-key-btn" class="px-3 py-1.5 rounded-lg bg-cyan-950 hover:bg-cyan-900 border border-cyan-700 text-cyan-300 text-xs font-mono transition">
+              🔄 New Key & IV
+            </button>
+          </div>
+
+          <!-- Key & IV Display -->
+          <div class="space-y-2 text-xs font-mono">
+            <div>
+              <span class="text-slate-400 block text-[11px]">AES-256 Secret Key (256-bit Hex):</span>
+              <div id="aes-key-hex" class="p-2 bg-slate-950 border border-slate-800 rounded text-cyan-300 break-all select-all">Generating...</div>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[11px]">Initialization Vector / Nonce (96-bit IV):</span>
+              <div id="aes-iv-hex" class="p-2 bg-slate-950 border border-slate-800 rounded text-emerald-300 break-all select-all">Generating...</div>
+            </div>
+          </div>
+
+          <!-- Plaintext Input -->
+          <div>
+            <label class="block text-xs font-mono font-bold text-slate-300 mb-1">Plaintext to Encrypt:</label>
+            <input type="text" id="aes-plaintext-input" value="Top Secret Message: Transfer $1,000,000 to Account #9482"
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 font-mono text-xs text-white outline-none">
+          </div>
+
+          <button id="aes-encrypt-btn" class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-black font-bold font-mono text-xs uppercase tracking-wider transition">
+            Encrypt with AES-256-GCM
+          </button>
+
+          <!-- Ciphertext & Auth Tag Outputs -->
+          <div class="space-y-3 pt-2">
+            <div>
+              <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                <span>Ciphertext (Hex Payload):</span>
+                <span id="aes-tamper-badge" class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-700">✓ Untampered</span>
+              </div>
+              <div id="aes-ciphertext-hex" class="p-2.5 bg-slate-950 border border-slate-800 rounded-lg font-mono text-xs text-slate-300 break-all select-all max-h-20 overflow-y-auto">...</div>
+            </div>
+
+            <div>
+              <span class="block text-xs text-slate-400 mb-1">128-bit Authentication Tag (GMAC):</span>
+              <div id="aes-tag-hex" class="p-2 bg-slate-950 border border-slate-800 rounded-lg font-mono text-xs text-purple-300 break-all select-all">...</div>
+            </div>
+          </div>
+
+          <!-- TAMPER STATION -->
+          <div class="p-4 bg-slate-950 rounded-xl border border-red-900/60 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-red-400 uppercase font-mono flex items-center gap-1.5">
+                <span>⚠️ Interactive Tamper Station</span>
+              </span>
+              <span class="text-[10px] text-slate-500">Inject MITM Bit Corruptions</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button id="aes-tamper-cipher-btn" class="px-3 py-2 rounded-lg bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-800 text-xs font-mono transition">
+                ⚡ Corrupt Ciphertext Bit
+              </button>
+              <button id="aes-tamper-tag-btn" class="px-3 py-2 rounded-lg bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-800 text-xs font-mono transition">
+                ⚡ Corrupt Auth Tag Bit
+              </button>
+            </div>
+            <button id="aes-reset-tamper-btn" class="w-full py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 text-xs font-mono transition">
+              🔄 Restore Original Untampered Payload
+            </button>
+          </div>
+
+          <button id="aes-decrypt-btn" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-black font-bold font-mono text-xs uppercase tracking-wider transition">
+            Decrypt Ciphertext (Verify AEAD)
+          </button>
+
+          <!-- Decrypt Output Status Box -->
+          <div id="aes-decrypt-output"></div>
+        </div>
+
+        <!-- SUBMODULE 2: RSA-OAEP (2048-bit) -->
+        <div class="cyber-card p-6 rounded-2xl space-y-5 border-t-4 border-t-purple-500">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <h3 class="text-lg font-bold text-purple-400 font-mono">RSA-OAEP (2048-bit)</h3>
+              <p class="text-xs text-slate-400">Asymmetric Public-Key Cryptography</p>
+            </div>
+            <button id="rsa-gen-keys-btn" class="px-3 py-1.5 rounded-lg bg-purple-950 hover:bg-purple-900 border border-purple-700 text-purple-300 text-xs font-mono transition">
+              ⚡ Generate New RSA-2048 Keypair
+            </button>
+          </div>
+
+          <!-- Public / Private PEM Textareas -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-mono text-cyan-400 mb-1">Public Key (SPKI PEM):</label>
+              <textarea id="rsa-public-pem" rows="4" readonly class="w-full bg-slate-950 border border-slate-800 rounded p-2 font-mono text-[10px] text-cyan-300 select-all"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-mono text-purple-400 mb-1">Private Key (PKCS#8 PEM):</label>
+              <textarea id="rsa-private-pem" rows="4" readonly class="w-full bg-slate-950 border border-slate-800 rounded p-2 font-mono text-[10px] text-purple-300 select-all"></textarea>
+            </div>
+          </div>
+
+          <!-- Message Input -->
+          <div>
+            <label class="block text-xs font-mono font-bold text-slate-300 mb-1">Message to Encrypt with Public Key:</label>
+            <input type="text" id="rsa-plaintext-input" value="Shared AES Session Key: 9f8a3c4b2e1d0f5a7b8c"
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 font-mono text-xs text-white outline-none">
+          </div>
+
+          <button id="rsa-encrypt-btn" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-black font-bold font-mono text-xs uppercase tracking-wider transition">
+            Encrypt with Public Key (RSA-OAEP-SHA256)
+          </button>
+
+          <!-- Ciphertext Block -->
+          <div id="rsa-ciphertext-output"></div>
+
+          <button id="rsa-decrypt-btn" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-black font-bold font-mono text-xs uppercase tracking-wider transition">
+            Decrypt with Private Key
+          </button>
+
+          <!-- Decrypt Output Status Box -->
+          <div id="rsa-decrypt-output"></div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ========================================================================= -->
+    <!-- MODULE C: MULTI-THREADED HASH CRACKING SIMULATOR -->
+    <!-- ========================================================================= -->
+    <section id="section-cracking-simulator" class="content-section hidden space-y-6">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+            Multi-Threaded Hash Cracking Simulator
+          </h2>
+          <p class="text-sm text-slate-400">Background Web Worker execution simulating dictionary, hybrid rule mutations, and mask brute-force attacks.</p>
+        </div>
+      </div>
+
+      <!-- MAIN SIMULATOR HUD & CONTROLS -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Controls Column -->
+        <div class="cyber-card p-6 rounded-2xl space-y-4">
+          <h3 class="text-sm font-bold font-mono uppercase tracking-wider text-cyan-400 border-b border-slate-800 pb-2">
+            Attack Configuration
+          </h3>
+
+          <div>
+            <label class="block text-xs font-mono text-slate-300 mb-1">Target Hash Digest:</label>
+            <input type="text" id="crack-target-hash" value="5f4dcc3b5aa765d61d8327deb882cf99" placeholder="Enter target MD5 or SHA-256 hash..."
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 font-mono text-xs text-cyan-300 outline-none select-all transition">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-mono text-slate-400 mb-1">Algorithm:</label>
+              <select id="crack-algorithm-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 font-mono text-xs text-white">
+                <option value="MD5">MD5</option>
+                <option value="SHA-256">SHA-256</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-mono text-slate-400 mb-1">Attack Mode:</label>
+              <select id="crack-attack-mode-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 font-mono text-xs text-white">
+                <option value="dictionary">Dictionary Attack</option>
+                <option value="hybrid">Hybrid (Rules + Leet + Years)</option>
+                <option value="mask">Mask Brute Force</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-mono text-slate-400 mb-1">Wordlist Size:</label>
+              <select id="crack-wordlist-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 font-mono text-xs text-white">
+                <option value="1000">1,000 Common Passwords</option>
+                <option value="5000" selected>5,000 Common Passwords</option>
+                <option value="10000">10,000 Common Passwords</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-mono text-slate-400 mb-1">Concurrency:</label>
+              <select id="crack-threads-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 font-mono text-xs text-white">
+                <option value="1">1 Worker Thread</option>
+                <option value="4" selected>4 Worker Threads</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Optional Mask Input -->
+          <div id="crack-mask-config" class="hidden p-3 bg-slate-950 rounded-lg border border-slate-800 space-y-1">
+            <label class="block text-[11px] font-mono text-cyan-400">Mask Pattern:</label>
+            <select id="crack-mask-pattern" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 font-mono text-xs text-slate-200">
+              <option value="?d?d?d?d">?d?d?d?d (4 digits: 0000-9999)</option>
+              <option value="?l?l?l?d">?l?l?l?d (3 lowercase + 1 digit: aaa0 - zzz9)</option>
+            </select>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="pt-2 space-y-2">
+            <button id="crack-start-btn" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-emerald-500 hover:from-cyan-500 hover:to-emerald-400 text-black font-extrabold font-mono text-xs uppercase tracking-wider transition shadow-lg shadow-cyan-500/20">
+              ⚡ Launch Cracking Attack
+            </button>
+            <div class="grid grid-cols-2 gap-2">
+              <button id="crack-pause-btn" disabled class="py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 text-xs font-mono transition disabled:opacity-50">
+                ⏸ Pause
+              </button>
+              <button id="crack-stop-btn" disabled class="py-2 rounded-lg bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-800 text-xs font-mono transition disabled:opacity-50">
+                ⏹ Stop
+              </button>
+            </div>
+          </div>
+
+          <!-- Sample Targets Quick Loader -->
+          <div class="pt-2 border-t border-slate-800 space-y-2">
+            <span class="text-xs font-bold font-mono text-slate-400 block uppercase">Preset Targets:</span>
+            <div id="crack-presets-container" class="space-y-1.5 max-h-60 overflow-y-auto pr-1"></div>
+          </div>
+        </div>
+
+        <!-- Telemetry & Live HUD Column -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- LIVE TELEMETRY STATS -->
+          <div class="cyber-card p-6 rounded-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <span class="text-xs font-bold font-mono uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Cracking Telemetry HUD
+              </span>
+              <span id="hud-progress-percent" class="font-mono text-xs text-slate-400">0%</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+              <div id="hud-progress-bar" class="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 w-0 transition-all duration-75"></div>
+            </div>
+
+            <!-- 4 Metrics Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                <span class="text-[10px] text-slate-500 uppercase tracking-wider block font-mono">Total Computed</span>
+                <span id="hud-total-attempts" class="text-lg font-bold font-mono text-white">0</span>
+              </div>
+              <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                <span class="text-[10px] text-slate-500 uppercase tracking-wider block font-mono">Hashrate (H/s)</span>
+                <span id="hud-hashrate" class="text-lg font-bold font-mono text-cyan-400">0 H/s</span>
+              </div>
+              <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                <span class="text-[10px] text-slate-500 uppercase tracking-wider block font-mono">Elapsed Time</span>
+                <span id="hud-elapsed-time" class="text-lg font-bold font-mono text-purple-400">0.00s</span>
+              </div>
+              <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                <span class="text-[10px] text-slate-500 uppercase tracking-wider block font-mono">Testing Word</span>
+                <span id="hud-current-candidate" class="text-sm font-mono font-bold text-emerald-400 truncate block">Ready</span>
+              </div>
+            </div>
+
+            <!-- Active Worker Threads Grid -->
+            <div>
+              <span class="text-[11px] font-mono text-slate-400 block mb-2">Worker Thread Allocation:</span>
+              <div id="crack-workers-grid" class="grid grid-cols-2 md:grid-cols-4 gap-2"></div>
+            </div>
+          </div>
+
+          <!-- Result Banner -->
+          <div id="crack-result-banner"></div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ========================================================================= -->
+    <!-- MODULE D: SLOW HASHES & KDF DEFENSE BENCHMARK -->
+    <!-- ========================================================================= -->
+    <section id="section-slow-hash-benchmark" class="content-section hidden space-y-6">
+      <div>
+        <h2 class="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          Slow Hash Functions & Key Derivation Functions (KDF)
+        </h2>
+        <p class="text-sm text-slate-400">Measure real computation times of memory-hard KDFs (bcrypt, scrypt, PBKDF2) and analyze why work factors defeat GPU clusters.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Config Card -->
+        <div class="cyber-card p-6 rounded-2xl space-y-4">
+          <h3 class="text-sm font-bold font-mono uppercase tracking-wider text-cyan-400 border-b border-slate-800 pb-2">
+            KDF Parameters
+          </h3>
+
+          <div>
+            <label class="block text-xs font-mono text-slate-300 mb-1">Algorithm:</label>
+            <select id="benchmark-algo-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 font-mono text-xs text-white">
+              <option value="bcrypt" selected>bcrypt (Blowfish Key Schedule)</option>
+              <option value="scrypt">scrypt / Argon2 (Memory-Hard)</option>
+              <option value="pbkdf2">PBKDF2-SHA256 (Iterative HMAC)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-mono text-slate-300 mb-1">Password Input:</label>
+            <input type="text" id="benchmark-password-input" value="password123"
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 font-mono text-xs text-white">
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex items-center justify-between text-xs font-mono">
+              <span id="benchmark-cost-label" class="text-slate-300">Bcrypt Salt Rounds (Cost Factor 2^N):</span>
+              <span id="benchmark-cost-val" class="font-bold text-cyan-400">10</span>
+            </div>
+            <input type="range" id="benchmark-cost-slider" min="8" max="14" value="10"
+              class="w-full accent-cyan-400 bg-slate-950 cursor-pointer">
+            <span class="text-[10px] text-slate-500 font-mono block">Each +1 increment doubles the total computational work required (2^N).</span>
+          </div>
+
+          <button id="benchmark-run-btn" class="w-full py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-black font-extrabold font-mono text-xs uppercase tracking-wider transition">
+            ⚡ Run Live KDF Benchmark
+          </button>
+        </div>
+
+        <!-- Results Card -->
+        <div class="lg:col-span-2">
+          <div id="benchmark-results-container"></div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ========================================================================= -->
+    <!-- MODULE E: TEST SUITE & CRYPTOGRAPHIC ASSERTIONS -->
+    <!-- ========================================================================= -->
+    <section id="section-test-suite" class="content-section hidden space-y-6">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+            Cryptographic Test Suite & RFC Verification
+          </h2>
+          <p class="text-sm text-slate-400">Automated client-side assertion suite verifying Web Crypto API primitives against official standards.</p>
+        </div>
+        <button id="run-all-tests-btn" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-black font-extrabold font-mono text-xs uppercase tracking-wider transition">
+          ⚡ Run All Assertions
+        </button>
+      </div>
+
+      <div id="test-suite-summary-banner" class="hidden"></div>
+      <div id="test-suite-results-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+    </section>
+
+
+    <!-- ========================================================================= -->
+    <!-- MODULE F: CRYPTOGRAPHY REFERENCE GUIDE -->
+    <!-- ========================================================================= -->
+    <section id="section-reference-guide" class="content-section hidden space-y-8">
+      <div>
+        <h2 class="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          Defensive Cryptography Architecture Reference
+        </h2>
+        <p class="text-sm text-slate-400">Core architectural comparisons, algorithm lifecycles, and security engineering guidelines.</p>
+      </div>
+
+      <!-- COMPARISON TABLE: SYMMETRIC VS ASYMMETRIC -->
+      <div class="cyber-card p-6 rounded-2xl space-y-4">
+        <h3 class="text-base font-bold text-cyan-400 font-mono">1. Symmetric vs. Asymmetric Cryptography</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left text-slate-300 font-mono">
+            <thead class="bg-slate-950 text-cyan-300 border-b border-slate-800">
+              <tr>
+                <th class="p-3">Feature</th>
+                <th class="p-3">Symmetric (e.g. AES-256-GCM)</th>
+                <th class="p-3">Asymmetric (e.g. RSA-2048-OAEP / ECC)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              <tr>
+                <td class="p-3 font-bold text-white">Keys Involved</td>
+                <td class="p-3">1 Shared Secret Key (Used for both Encrypt & Decrypt)</td>
+                <td class="p-3">2 Keys: Public Key (Encrypt) + Private Key (Decrypt)</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-white">Execution Speed</td>
+                <td class="p-3 text-emerald-400">Extremely Fast (Hardware AES-NI: Gigabytes/sec)</td>
+                <td class="p-3 text-yellow-400">Slow (Modular exponentiation: Kilobytes/sec)</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-white">Key Distribution</td>
+                <td class="p-3 text-yellow-400">Difficult (Requires secure out-of-band channel)</td>
+                <td class="p-3 text-emerald-400">Easy (Public key shared freely over public network)</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-white">Primary Use Case</td>
+                <td class="p-3">Bulk data encryption (Files, databases, TLS traffic)</td>
+                <td class="p-3">Key exchange (Diffie-Hellman), digital signatures, auth</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-white">Standard Best Practice</td>
+                <td class="p-3">Always use AEAD modes (AES-GCM / ChaCha20-Poly1305)</td>
+                <td class="p-3">Hybrid Encryption: RSA encrypts ephemeral AES key</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- COMPARISON TABLE: FAST HASHES VS SLOW KDFS -->
+      <div class="cyber-card p-6 rounded-2xl space-y-4">
+        <h3 class="text-base font-bold text-emerald-400 font-mono">2. Fast Hashes vs. Slow Key Derivation Functions (KDFs)</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left text-slate-300 font-mono">
+            <thead class="bg-slate-950 text-emerald-300 border-b border-slate-800">
+              <tr>
+                <th class="p-3">Category</th>
+                <th class="p-3">Fast Hashes (MD5, SHA-256)</th>
+                <th class="p-3">Slow Password KDFs (bcrypt, Argon2id)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              <tr>
+                <td class="p-3 font-bold text-white">Design Goal</td>
+                <td class="p-3">Maximum throughput & data integrity</td>
+                <td class="p-3">Tunable computation cost & memory hardness</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-white">GPU Hashrate</td>
+                <td class="p-3 text-red-400">Billions / second (GPU/ASIC friendly)</td>
+                <td class="p-3 text-emerald-400">Thousands / second (Memory bottlenecked)</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-white">Salting Requirement</td>
+                <td class="p-3">Must be manually concatenated if used</td>
+                <td class="p-3">Automatically embedded in output string modularly</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-white">Password Storage Suitability</td>
+                <td class="p-3 text-red-400 font-bold">UNSAFE (Critical Vulnerability)</td>
+                <td class="p-3 text-emerald-400 font-bold">RECOMMENDED (OWASP / NIST Standard)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-800/80 mt-12 py-6 px-4 text-center text-xs text-slate-500 font-mono">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <span>CryptoLab • Educational Cryptography Simulator</span>
+      <span>Built with Web Crypto API • Web Workers • Node.js & Express</span>
+    </div>
+  </footer>
+
+  <!-- MODULE SCRIPTS -->
+  <script src="/js/crypto-engine.js"></script>
+  <script src="/js/modules/hash-inspector.js"></script>
+  <script src="/js/modules/encryption-playground.js"></script>
+  <script src="/js/modules/cracking-simulator.js"></script>
+  <script src="/js/modules/slow-hash-benchmark.js"></script>
+  <script src="/js/modules/test-suite-ui.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

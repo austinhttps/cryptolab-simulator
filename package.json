@@ -1,0 +1,27 @@
+{
+  "name": "cryptolab-simulator",
+  "version": "1.0.0",
+  "description": "CryptoLab - Interactive Cryptography & Hash Cracking Simulator",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node tests/run-tests.js"
+  },
+  "keywords": [
+    "cryptography",
+    "hash-cracking",
+    "web-crypto-api",
+    "aes-gcm",
+    "rsa-oaep",
+    "web-workers",
+    "security-education"
+  ],
+  "author": "CryptoLab Team",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}
