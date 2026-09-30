@@ -10,25 +10,26 @@
 flowchart TD
     subgraph BrowserClient["Browser Client (Main UI Thread - 60 FPS)"]
         UI["Interactive Dashboard (Tailwind CSS Dark Theme)"]
+        Engine["Crypto Engine (AES-256-GCM, RSA-OAEP-2048, MD5, SHA-256)"]
         WCA["Web Crypto API (window.crypto.subtle)"]
-        Engine["Crypto Engine (AES-256-GCM, RSA-OAEP-2048, MD5, SHA-1/256/512)"]
         
         UI --> Engine
         Engine --> WCA
     end
 
     subgraph WebWorkerPool["Multi-Threaded Web Worker Pool"]
-        W1["Cracker Worker #1 (Batch Slices)"]
-        W2["Cracker Worker #2 (Batch Slices)"]
-        W3["Cracker Worker #3 (Batch Slices)"]
-        W4["Cracker Worker #N (Batch Slices)"]
+        WManager["Worker Pool Scheduler"]
+        W1["Cracker Worker #1 (Batch Chunk)"]
+        W2["Cracker Worker #2 (Batch Chunk)"]
+        W3["Cracker Worker #N (Batch Chunk)"]
         
-        UI -- "postMessage(START, Wordlist Chunks)" --> WebWorkerPool
-        WebWorkerPool -- "postMessage(PROGRESS / MATCH_FOUND)" --> UI
+        WManager --> W1
+        WManager --> W2
+        WManager --> W3
     end
 
     subgraph NodeBackend["Node.js & Express Backend"]
-        Server["Express Server (Port 3000)"]
+        Server["Express API Server (Port 3000)"]
         SampleAPI["/api/samples & /api/wordlists"]
         RainbowAPI["/api/rainbow-table/lookup (O(1) Map)"]
         KDFBenchmark["/api/benchmark/slow-hash (bcrypt / scrypt / PBKDF2)"]
@@ -38,7 +39,9 @@ flowchart TD
         Server --> KDFBenchmark
     end
 
-    UI -- "REST API (Fetch)" --> NodeBackend
+    UI -->|"postMessage(START, Chunks)"| WManager
+    WManager -->|"postMessage(PROGRESS / MATCH)"| UI
+    UI -->|"REST API (HTTP Fetch)"| Server
 ```
 
 ---
